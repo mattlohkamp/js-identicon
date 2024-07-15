@@ -5,6 +5,13 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<meta http-equiv="X-UA-Compatible" content="ie=edge" />
 		<title>Identicon Generator</title>
+		<style>
+			#scratchpad {
+				width: 64px;
+				height: 64px;
+				border: 1px solid black;
+			}
+		</style>
 	</head>
 	<body>
 		<form>
@@ -20,11 +27,36 @@
 			/></label>
 			<button type="submit">Generate My Identicon!</button>
 		</form>
+		<canvas id="scratchpad"></canvas>
 		<script>
+			/*
+				TODO:
+				 - differentiate icons via - 
+				 	- serif vs sanserif
+					- dark-on-light vs light-on-dark
+					- foreground and background colours
+					- stroke vs no stroke?
+					- background shapes?
+			*/
 			function generateIdenticon(sourceString, defaultLetter = "x") {
 				const firstLetter =
 					sourceString.match(/[a-zA-Z0-9]/)?.[0] ?? defaultLetter;
-				console.log(firstLetter);
+				context.font = "128px serif";
+				context.fillText(firstLetter, 100, 100);
+			}
+			//	grab result of form submission
+			const searchParams = new URLSearchParams(window.location.search);
+			const sourceString = searchParams.get("sourceString");
+			//	this is where we'll draw the icon
+			const canvas = document.querySelector("#scratchpad");
+			const context = canvas.getContext("2d");
+
+			if (sourceString) {
+				//	then there was previously a form submission
+				//	default the input field to the previously submitted text for continuity's sake
+				document.querySelector("[name=sourceString]").value = sourceString;
+				//	and make the thing
+				generateIdenticon(sourceString);
 			}
 		</script>
 	</body>
