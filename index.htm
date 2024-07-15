@@ -27,32 +27,41 @@
 			/></label>
 			<button type="submit">Generate My Identicon!</button>
 		</form>
-		<canvas id="scratchpad"></canvas>
+		<canvas id="scratchpad" hidden></canvas>
+		<a href="" id="resultDownloadLink" download=""
+			><img src="" id="resultImg"
+		/><br /><span>Download Your Identicon!</span></span></a>
 		<script>
 			/*
-				TODO:
-				 - differentiate icons via - 
-				 	- serif vs sanserif
-					- dark-on-light vs light-on-dark
-					- foreground and background colours
-					- stroke vs no stroke?
-					- background shapes?
-			*/
+							TODO:
+							 - differentiate icons via -
+							 	- serif vs sanserif
+								- dark-on-light vs light-on-dark
+								- foreground and background colours
+								- stroke vs no stroke?
+								- background shapes?
+								- border?
+						*/
 			function generateIdenticon(sourceString, defaultLetter = "x") {
 				const firstLetter =
 					sourceString.match(/[a-zA-Z0-9]/)?.[0] ?? defaultLetter;
 				context.font = "128px serif";
 				context.fillText(firstLetter, 100, 100);
+				const resultDataURL = canvas.toDataURL("image/png");
+				//	beautiful
+				resultImg.src = resultDataURL;
+				resultDownloadLink.href = resultDataURL;
+				resultDownloadLink.download = sourceString;
 			}
-			//	grab result of form submission
+
 			const searchParams = new URLSearchParams(window.location.search);
 			const sourceString = searchParams.get("sourceString");
-			//	this is where we'll draw the icon
 			const canvas = document.querySelector("#scratchpad");
 			const context = canvas.getContext("2d");
+			const resultDownloadLink = document.querySelector("#resultDownloadLink");
+			const resultImg = document.querySelector("#resultImg");
 
 			if (sourceString) {
-				//	then there was previously a form submission
 				//	default the input field to the previously submitted text for continuity's sake
 				document.querySelector("[name=sourceString]").value = sourceString;
 				//	and make the thing
