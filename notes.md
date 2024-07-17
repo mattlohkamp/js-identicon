@@ -1,4 +1,0 @@
- - get name string, we'll be using the first letter as the main graphical feature
- - figure out font and colour based on other content in the string - maybe with some kind of random function using the content as a seed? maybeeeeee something else?
- - provisioning for sizing? what's the smallest resolution we can get this work at?
- - test by generating a ton of different images, look for confusing levels of similarity, like 'visual collisions' basically

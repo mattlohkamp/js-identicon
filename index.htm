@@ -53,6 +53,7 @@
 				return {
 					useCapital:hashUint32 > maxUint32 / 2,	//	higher hash = capital letters
 					useSerif: !!(hashUint32 % 2),	//	odd hash value = serif
+						//	TODO: avoid simultaneous contrast effect by favouring lighter / darker values - maybe light colour gets lighter, dark colour gets darker? Brown bg + blue fg is rough, for instance.
 					foregroundColour: tinyColour.toHex(),
 					backgroundColour: tinyColour.complement().toHex(),
 				}
@@ -74,6 +75,13 @@
 				context.font = `128px ${props.useSerif ? 'serif' : 'sans-serif'}`;
 					//	TODO: ooooooh what if gradient??
 				context.fillStyle = `#${props.foregroundColour}`;
+
+				/*
+					TODO: need to make sure glyph is reliably centered on canvas
+					 - sans C is too high
+					 - serif q is too low
+				*/				
+
 				context.fillText(primeChar, canvas.width/2, canvas.height/2);
 				const resultDataURL = canvas.toDataURL("image/png");
 				//	beautiful
