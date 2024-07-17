@@ -5,6 +5,14 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<meta http-equiv="X-UA-Compatible" content="ie=edge" />
 		<title>Identicon Generator</title>
+		<style>
+			#resultDownloadLink {
+				display: none;
+			}
+			#resultDownloadLink[href] {
+				display: unset;
+			}
+		</style>
 	</head>
 	<body>
 		<form>
@@ -20,82 +28,80 @@
 			/></label>
 			<button type="submit">Generate My Identicon!</button>
 		</form>
-		<!--	TODO: maybe just use a canvas in js, no need for it to ever be in the DOM? also maybe auto-download?	-->
-		<canvas id="scratchpad" hidden width="128" height="128"></canvas>
-		<a href="" id="resultDownloadLink" download=""
-			><img src="" id="resultImg"
-		/><br /><span>Download Your Identicon!</span></span></a>
-		<script type="text/javascript" src="node_modules/murmurhash/murmurhash.js"></script>
-		<script type="text/javascript" src="node_modules/tinycolor2/tinycolor.js"></script>
-		<script>
-			/*
-				TODO:
-					- differentiate icons via -
-						✔ serif vs sanserif
-						✔ capital vs lowercase
-						✔ dark-on-light vs light-on-dark
-						✔ foreground and background colours
-						- stroke vs no stroke?
-						- background shapes?
-						- border?
-			*/
-
+		<a id="resultDownloadLink"
+			><img id="resultImg" />
+			<br />
+			<span>Download Your Identicon!</span>
+		</a>
+		<script
+			type="text/javascript"
+			src="node_modules/murmurhash/murmurhash.js"></script>
+		<script
+			type="text/javascript"
+			src="node_modules/tinycolor2/dist/tinycolor-min.js"></script>
+		<script type="text/javascript">
 			const maxUint32 = 4294967295;
 
-			function getPropsFromHash(sourceString){	//	TODO: optional argument to config default prop values?
+			function getPropsFromHash(sourceString) {
+				//	TODO: optional argument to config default prop values?
 				const hashUint32 = murmur(sourceString);
-				const colourRGBHexValue = Math.round((hashUint32 / maxUint32) * 0xffffff);	// just pick a colour along the number line
-				const tinyColour = new tinycolor(colourRGBHexValue.toString(16).padStart(6,'0'));
+				const colourRGBHexValue = Math.round(
+					(hashUint32 / maxUint32) * 0xffffff
+				); // just pick a colour along the number line of possible hex values
+				const tinyColour = new tinycolor(
+					colourRGBHexValue.toString(16).padStart(6, "0")
+				);
 				console.log({
 					colourRGBHexValue,
-					tinyColour
+					tinyColour,
 				});
 				return {
-					useCapital:hashUint32 > maxUint32 / 2,	//	higher hash = capital letters
-					useSerif: !!(hashUint32 % 2),	//	odd hash value = serif
-						//	TODO: avoid simultaneous contrast effect by favouring lighter / darker values - maybe light colour gets lighter, dark colour gets darker? Brown bg + blue fg is rough, for instance.
+					useCapital: hashUint32 > maxUint32 / 2, //	higher hash = capital letters
+					useSerif: !!(hashUint32 % 2), //	odd hash value = serif
+					//	TODO: avoid simultaneous contrast effect by favouring lighter / darker values - maybe light colour gets lighter, dark colour gets darker? Brown bg + blue fg is rough, for instance.
 					foregroundColour: tinyColour.toHex(),
 					backgroundColour: tinyColour.complement().toHex(),
-				}
+				};
 			}
 
 			function generateIdenticon(sourceString, defaultChar = "x") {
-				
 				const props = getPropsFromHash(sourceString);
 				console.log(props);
 
 				context.fillStyle = `#${props.backgroundColour}`;
 				context.fillRect(0, 0, canvas.width, canvas.height);
-				
+
 				let primeChar =
-					sourceString.match(/[a-zA-Z]/)?.[0]	//	first letter
-					?? sourceString.match(/[0-9]/)?.[0]	//	first number
-					?? defaultChar;	//	or just default
+					sourceString.match(/[a-zA-Z]/)?.[0] ?? //	first letter
+					sourceString.match(/[0-9]/)?.[0] ?? //	first number
+					defaultChar; //	or just default
 				primeChar = props.useCaps ? primeChar.toUpperCase() : primeChar;
-				context.font = `128px ${props.useSerif ? 'serif' : 'sans-serif'}`;
-					//	TODO: ooooooh what if gradient??
+				context.font = `128px ${props.useSerif ? "serif" : "sans-serif"}`;
+				//	TODO: ooooooh what if gradient??
 				context.fillStyle = `#${props.foregroundColour}`;
 
 				/*
 					TODO: need to make sure glyph is reliably centered on canvas
 					 - sans C is too high
 					 - serif q is too low
-				*/				
+				*/
 
-				context.fillText(primeChar, canvas.width/2, canvas.height/2);
+				context.fillText(primeChar, canvas.width / 2, canvas.height / 2);
 				const resultDataURL = canvas.toDataURL("image/png");
 				//	beautiful
 				resultImg.src = resultDataURL;
 				resultDownloadLink.href = resultDataURL;
-				resultDownloadLink.download = `${primeChar}_${sourceString}`;	//	TODO: is this filename guaranteed safe cross-platform?
+				resultDownloadLink.download = `${primeChar}_${sourceString}`;
 			}
 
 			const searchParams = new URLSearchParams(window.location.search);
 			const sourceString = searchParams.get("sourceString");
-			const canvas = document.querySelector("#scratchpad");
+			const canvas = document.createElement("canvas");
+			canvas.width = 128;
+			canvas.height = 128;
 			const context = canvas.getContext("2d");
-						context.textAlign = "center";
-						context.textBaseline = "middle"
+			context.textAlign = "center";
+			context.textBaseline = "middle";
 
 			const resultDownloadLink = document.querySelector("#resultDownloadLink");
 			const resultImg = document.querySelector("#resultImg");
