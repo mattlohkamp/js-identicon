@@ -1,3 +1,5 @@
+<img src="./examples/i_i.png" width="64" /><img src="./examples/d_d.png" width="64" /><img src="./examples/e_e.png" width="64" /><img src="./examples/n_n.png" width="64" /><img src="./examples/t_t.png" width="64" /><img src="./examples/i_i2.png" width="64" /><img src="./examples/c_c.png" width="64" /><img src="./examples/o_o.png" width="64" /><img src="./examples/n_n2.png" width="64" />
+
 # Objectives
 
 - identicon generation should be reliably the same, given the same user name
