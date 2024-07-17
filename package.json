@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@picocss/pico": "^2.0.6",
     "murmurhash": "^2.0.1",
     "tinycolor2": "^1.6.0"
   }

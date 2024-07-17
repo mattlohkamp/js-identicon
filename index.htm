@@ -5,14 +5,42 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<meta http-equiv="X-UA-Compatible" content="ie=edge" />
 		<title>Identicon Generator</title>
+		<link
+			href="node_modules/@picocss/pico/css/pico.classless.min.css"
+			rel="stylesheet" />
 		<style>
+			#sourceInput {
+				display: flex;
+				justify-content: center;
+				flex-wrap: wrap;
+				padding: 5em;
+				label {
+					flex: 0 1 auto;
+					display: flex;
+					justify-content: space-around;
+					align-items: center;
+				}
+				span {
+					flex: 1 0 max-content;
+					margin-right: 1ex;
+					margin-top: -1em;
+				}
+				input {
+					flex: 0 0 max-content;
+					margin-right: 1ex;
+				}
+				button {
+					width: max-content;
+					flex: 0 0 max-content;
+				}
+			}
 			#resultDownloadLink {
 				display: none;
-				width: 200px;
-				border: 1px solid #ccc;
-				margin: 1em;
+				margin: auto;
 				padding: 2em;
 				text-align: center;
+				border: 1px solid var(--pico-muted-border-color);
+				width: max-content;
 				span {
 					display: block;
 					margin-top: 1em;
@@ -24,7 +52,7 @@
 		</style>
 	</head>
 	<body>
-		<form>
+		<form id="sourceInput">
 			<label
 				><span>Enter name here:</span
 				><input
@@ -71,7 +99,7 @@
 				//	https://www.w3.org/TR/UNDERSTANDING-WCAG20/visual-audio-contrast-contrast.html
 				while (
 					tinycolor.isReadable(tcForeground, tcBackground, {
-						level: "AAA",
+						level: "AA",
 						size: "large",
 					}) === false
 				) {
@@ -114,7 +142,9 @@
 					defaultChar;
 				primeChar = props.useCaps ? primeChar.toUpperCase() : primeChar;
 
-				ctx.font = `100px ${props.useSerif ? "serif" : "sans-serif"}`;
+				ctx.font = `${size * 0.85}px ${
+					props.useSerif ? "serif" : "sans-serif"
+				}`;
 				ctx.fillStyle = `#${props.foregroundColour}`;
 
 				ctx.fillText(primeChar, canvas.width / 2, canvas.height / 2);
@@ -127,9 +157,10 @@
 
 			const searchParams = new URLSearchParams(window.location.search);
 			const sourceString = searchParams.get("sourceString");
+			const size = 128;
 			const canvas = document.createElement("canvas");
-			canvas.width = 128;
-			canvas.height = 128;
+			canvas.width = size;
+			canvas.height = size;
 			const ctx = canvas.getContext("2d");
 			ctx.textAlign = "center";
 			ctx.textBaseline = "middle";
