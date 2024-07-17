@@ -8,16 +8,25 @@
 		<style>
 			#resultDownloadLink {
 				display: none;
+				width: 200px;
+				border: 1px solid #ccc;
+				margin: 1em;
+				padding: 2em;
+				text-align: center;
+				span {
+					display: block;
+					margin-top: 1em;
+				}
 			}
 			#resultDownloadLink[href] {
-				display: unset;
+				display: block;
 			}
 		</style>
 	</head>
 	<body>
 		<form>
 			<label
-				><span>Type your name here:</span
+				><span>Enter name here:</span
 				><input
 					type="text"
 					name="sourceString"
@@ -76,30 +85,36 @@
 				}
 
 				const foregroundColour = tcForeground.toHex();
-				const backgroundColour = tcBackground.toHex();
+				const backgroundColour1 = tcBackground.toHex();
+				//	little vignette effect
+				const backgroundColour2 = tcBackground.isLight
+					? tcBackground.lighten(10).toHex()
+					: tcBackground.darken(5).toHex();
 
 				return {
 					useCapital,
 					useSerif,
 					foregroundColour,
-					backgroundColour,
+					backgroundColour1,
+					backgroundColour2,
 				};
 			}
 
 			function generateIdenticon(sourceString, defaultChar = "x") {
 				const props = getPropsFromHash(sourceString);
 
-				ctx.fillStyle = `#${props.backgroundColour}`;
+				backgroundFillStyle.addColorStop(0, `#${props.backgroundColour1}`);
+				backgroundFillStyle.addColorStop(1, `#${props.backgroundColour2}`);
+				ctx.fillStyle = backgroundFillStyle;
 				ctx.fillRect(0, 0, canvas.width, canvas.height);
 
 				let primeChar =
 					sourceString.match(/[a-zA-Z]/)?.[0] ?? //	first letter
 					sourceString.match(/[0-9]/)?.[0] ?? //	first number
-					defaultChar; //	or just default
+					defaultChar;
 				primeChar = props.useCaps ? primeChar.toUpperCase() : primeChar;
 
 				ctx.font = `100px ${props.useSerif ? "serif" : "sans-serif"}`;
-				//	TODO: ooooooh what if gradient??
 				ctx.fillStyle = `#${props.foregroundColour}`;
 
 				ctx.fillText(primeChar, canvas.width / 2, canvas.height / 2);
@@ -118,6 +133,14 @@
 			const ctx = canvas.getContext("2d");
 			ctx.textAlign = "center";
 			ctx.textBaseline = "middle";
+			const backgroundFillStyle = ctx.createRadialGradient(
+				canvas.width / 2,
+				canvas.height / 2,
+				canvas.width * 0.25,
+				canvas.width / 2,
+				canvas.height / 2,
+				canvas.width * 0.5
+			);
 
 			const resultDownloadLink = document.querySelector("#resultDownloadLink");
 			const resultImg = document.querySelector("#resultImg");
