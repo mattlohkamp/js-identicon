@@ -5,13 +5,6 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<meta http-equiv="X-UA-Compatible" content="ie=edge" />
 		<title>Identicon Generator</title>
-		<style>
-			#scratchpad {
-				width: 64px;
-				height: 64px;
-				border: 1px solid black;
-			}
-		</style>
 	</head>
 	<body>
 		<form>
@@ -31,27 +24,43 @@
 		<a href="" id="resultDownloadLink" download=""
 			><img src="" id="resultImg"
 		/><br /><span>Download Your Identicon!</span></span></a>
+		<script type="text/javascript" src="node_modules/murmurhash/murmurhash.js"></script>
 		<script>
+			//	TODO: maybe just use a canvas in js, no need for it to ever be in the DOM? also maybe auto-download?
+
 			/*
 							TODO:
 							 - differentiate icons via -
-							 	- serif vs sanserif
+							 	✔ serif vs sanserif
+								✔ capital vs lowercase
 								- dark-on-light vs light-on-dark
 								- foreground and background colours
 								- stroke vs no stroke?
 								- background shapes?
 								- border?
 						*/
-			function generateIdenticon(sourceString, defaultLetter = "x") {
-				const firstLetter =
-					sourceString.match(/[a-zA-Z0-9]/)?.[0] ?? defaultLetter;
-				context.font = "128px serif";
-				context.fillText(firstLetter, 100, 100);
+
+			const maxUint32 = 4294967295;
+
+			function generateIdenticon(sourceString, defaultChar = "x") {
+				const hashUint32 = murmur(sourceString);
+				const useCapital = hashUint32 > maxUint32 / 2;	//	higher hash = capital letters
+				const useSerif = !!(hashUint32 % 2);	//	odd hash value = serif
+				let primeChar =
+					sourceString.match(/[a-zA-Z]/)?.[0]	//	first letter
+					?? sourceString.match(/[0-9]/)?.[0]	//	first number
+					?? defaultChar;	//	or just default
+				if(useCapital){
+					primeChar = primeChar.toUpperCase();
+				}
+				context.font = `128px ${useSerif ? 'serif' : 'sans-serif'}`;
+				context.fillText(primeChar, 100, 100);
 				const resultDataURL = canvas.toDataURL("image/png");
 				//	beautiful
 				resultImg.src = resultDataURL;
 				resultDownloadLink.href = resultDataURL;
-				resultDownloadLink.download = sourceString;
+				resultDownloadLink.download = `${primeChar}_${sourceString}`;	//	TODO: is this filename guaranteed safe cross-platform?
+				console.log({hashUint32,useSerif,useCapital})
 			}
 
 			const searchParams = new URLSearchParams(window.location.search);
