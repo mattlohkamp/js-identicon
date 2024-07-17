@@ -43,52 +43,68 @@
 			const maxUint32 = 4294967295;
 
 			function getPropsFromHash(sourceString) {
-				//	TODO: optional argument to config default prop values?
 				const hashUint32 = murmur(sourceString);
+
+				const useCapital = hashUint32 > maxUint32 / 2; //	higher hash = capital letters
+
+				const useSerif = !!(hashUint32 % 2); //	odd hash value = serif
+
 				const colourRGBHexValue = Math.round(
 					(hashUint32 / maxUint32) * 0xffffff
 				); // just pick a colour along the number line of possible hex values
-				const tinyColour = new tinycolor(
+
+				const tcForeground = new tinycolor(
 					colourRGBHexValue.toString(16).padStart(6, "0")
 				);
-				console.log({
-					colourRGBHexValue,
-					tinyColour,
-				});
+				const tcBackground = tcForeground.clone().complement();
+
+				//	brighten / darken until colours pass accessibility threshold
+				//	https://www.w3.org/TR/UNDERSTANDING-WCAG20/visual-audio-contrast-contrast.html
+				while (
+					tinycolor.isReadable(tcForeground, tcBackground, {
+						level: "AAA",
+						size: "large",
+					}) === false
+				) {
+					if (tcForeground.isLight()) {
+						tcForeground.lighten();
+						tcBackground.darken();
+					} else {
+						tcForeground.darken();
+						tcBackground.lighten();
+					}
+				}
+
+				const foregroundColour = tcForeground.toHex();
+				const backgroundColour = tcBackground.toHex();
+
 				return {
-					useCapital: hashUint32 > maxUint32 / 2, //	higher hash = capital letters
-					useSerif: !!(hashUint32 % 2), //	odd hash value = serif
-					//	TODO: avoid simultaneous contrast effect by favouring lighter / darker values - maybe light colour gets lighter, dark colour gets darker? Brown bg + blue fg is rough, for instance.
-					foregroundColour: tinyColour.toHex(),
-					backgroundColour: tinyColour.complement().toHex(),
+					useCapital,
+					useSerif,
+					foregroundColour,
+					backgroundColour,
 				};
 			}
 
 			function generateIdenticon(sourceString, defaultChar = "x") {
 				const props = getPropsFromHash(sourceString);
-				console.log(props);
 
-				context.fillStyle = `#${props.backgroundColour}`;
-				context.fillRect(0, 0, canvas.width, canvas.height);
+				ctx.fillStyle = `#${props.backgroundColour}`;
+				ctx.fillRect(0, 0, canvas.width, canvas.height);
 
 				let primeChar =
 					sourceString.match(/[a-zA-Z]/)?.[0] ?? //	first letter
 					sourceString.match(/[0-9]/)?.[0] ?? //	first number
 					defaultChar; //	or just default
 				primeChar = props.useCaps ? primeChar.toUpperCase() : primeChar;
-				context.font = `128px ${props.useSerif ? "serif" : "sans-serif"}`;
+
+				ctx.font = `100px ${props.useSerif ? "serif" : "sans-serif"}`;
 				//	TODO: ooooooh what if gradient??
-				context.fillStyle = `#${props.foregroundColour}`;
+				ctx.fillStyle = `#${props.foregroundColour}`;
 
-				/*
-					TODO: need to make sure glyph is reliably centered on canvas
-					 - sans C is too high
-					 - serif q is too low
-				*/
+				ctx.fillText(primeChar, canvas.width / 2, canvas.height / 2);
 
-				context.fillText(primeChar, canvas.width / 2, canvas.height / 2);
 				const resultDataURL = canvas.toDataURL("image/png");
-				//	beautiful
 				resultImg.src = resultDataURL;
 				resultDownloadLink.href = resultDataURL;
 				resultDownloadLink.download = `${primeChar}_${sourceString}`;
@@ -99,9 +115,9 @@
 			const canvas = document.createElement("canvas");
 			canvas.width = 128;
 			canvas.height = 128;
-			const context = canvas.getContext("2d");
-			context.textAlign = "center";
-			context.textBaseline = "middle";
+			const ctx = canvas.getContext("2d");
+			ctx.textAlign = "center";
+			ctx.textBaseline = "middle";
 
 			const resultDownloadLink = document.querySelector("#resultDownloadLink");
 			const resultImg = document.querySelector("#resultImg");
